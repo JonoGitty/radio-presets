@@ -92,9 +92,12 @@ export class SoundEngine {
   // ------------------------------------------------------------------
 
   /** Trigger a sound. velocity 0-1 scales the volume. */
-  playSound(sound: Sound, velocity = 1): void {
-    if (!this.initialised) return;
+  async playSound(sound: Sound, velocity = 1): Promise<void> {
+    if (!this.initialised) {
+      await this.init();
+    }
 
+    try {
     if (sound.type === 'sample') {
       this.playSample(sound, velocity);
       return;
@@ -137,6 +140,9 @@ export class SoundEngine {
         (synth as Exclude<ToneSynth, Tone.NoiseSynth>).triggerAttack(note);
       }
     }
+    } catch (err) {
+      console.error('[SoundEngine] playSound error:', sound.id, err);
+    }
   }
 
   /** Stop a specific playing sound. */
@@ -170,6 +176,19 @@ export class SoundEngine {
   setMasterVolume(vol: number): void {
     if (!this.initialised) return;
     this.masterGain.gain.value = Math.max(0, Math.min(1, vol));
+  }
+
+  /** Live pitch bend — shift all cached synths by semitones (-12 to +12). */
+  setPitchBend(semitones: number): void {
+    if (!this.initialised) return;
+    const clamped = Math.max(-12, Math.min(12, semitones));
+    this.pitchShift.pitch = clamped;
+  }
+
+  /** Get current pitch bend value. */
+  getPitchBend(): number {
+    if (!this.initialised) return 0;
+    return this.pitchShift.pitch;
   }
 
   /** Tear down all audio resources. */

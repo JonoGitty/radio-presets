@@ -106,6 +106,7 @@ export const usePresetStore = create<PresetState>((set, get) => ({
 
   async loadFromDisk() {
     try {
+      if (!window.api) return;
       const raw = await window.api.loadPresets();
       if (!raw) return; // no saved data yet — keep defaults
       const loaded = JSON.parse(raw) as Preset[];
@@ -127,6 +128,7 @@ export const usePresetStore = create<PresetState>((set, get) => ({
 
   async saveToDisk() {
     try {
+      if (!window.api) return;
       const { presets } = get();
       await window.api.savePresets(JSON.stringify(presets, null, 2));
     } catch {

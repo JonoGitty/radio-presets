@@ -140,12 +140,87 @@ export default function KeyboardView() {
     }
   };
 
+  // --- Touchpad pitch bend ---
+  const [pitchBend, setPitchBend] = useState(0);
+
+  useEffect(() => {
+    let accumulated = 0;
+
+    const handleWheel = (e: WheelEvent) => {
+      // Only pitch bend when a key is actively held
+      if (activeKeys.size === 0) return;
+      e.preventDefault();
+
+      // deltaY: positive = scroll down = lower pitch, negative = scroll up = higher pitch
+      accumulated -= e.deltaY * 0.01;
+      accumulated = Math.max(-12, Math.min(12, accumulated));
+
+      // Snap to nearest semitone for clean intervals
+      const snapped = Math.round(accumulated * 2) / 2; // half-semitone resolution
+
+      if (engineRef.current) {
+        engineRef.current.setPitchBend(snapped);
+      }
+      setPitchBend(snapped);
+    };
+
+    // Reset pitch when all keys released
+    if (activeKeys.size === 0 && pitchBend !== 0) {
+      accumulated = 0;
+      if (engineRef.current) {
+        engineRef.current.setPitchBend(0);
+      }
+      setPitchBend(0);
+    }
+
+    window.addEventListener('wheel', handleWheel, { passive: false });
+    return () => window.removeEventListener('wheel', handleWheel);
+  }, [activeKeys, pitchBend]);
+
   // Count mapped keys
   const mappedCount = Object.values(activePreset.bindings).filter(Boolean).length;
   const totalKeys = KEYBOARD_ROWS.flat().length;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+      {/* Pitch bend indicator */}
+      {pitchBend !== 0 && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          padding: '4px 16px',
+          borderRadius: 'var(--radius-full)',
+          background: 'var(--accent-primary)' + '15',
+          border: '1px solid var(--accent-primary)' + '30',
+        }}>
+          <span style={{ color: 'var(--text-tertiary)', fontSize: 10, textTransform: 'uppercase' }}>Pitch</span>
+          <span style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: 14,
+            fontWeight: 700,
+            color: 'var(--accent-primary)',
+          }}>
+            {pitchBend > 0 ? '+' : ''}{pitchBend.toFixed(1)} st
+          </span>
+          <div style={{
+            width: 80, height: 4,
+            background: 'var(--bg-input)',
+            borderRadius: 2,
+            position: 'relative',
+          }}>
+            <div style={{
+              position: 'absolute',
+              top: 0, height: '100%',
+              left: '50%',
+              width: `${Math.abs(pitchBend / 12) * 50}%`,
+              marginLeft: pitchBend < 0 ? `${(pitchBend / 12) * 50}%` : 0,
+              background: 'var(--accent-primary)',
+              borderRadius: 2,
+              transition: 'all 50ms ease-out',
+            }} />
+          </div>
+        </div>
+      )}
+
       {/* Status bar */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: 16,
