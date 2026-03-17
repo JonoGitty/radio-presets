@@ -1,0 +1,49 @@
+{
+  "name": "radio-presets",
+  "version": "1.0.0",
+  "description": "Keyboard-mapped sound preset music maker",
+  "main": "dist-electron/main.js",
+  "scripts": {
+    "dev": "concurrently -k \"vite\" \"wait-on http://localhost:5173 && electron .\"",
+    "build": "vite build && tsc -p tsconfig.main.json",
+    "preview": "vite preview",
+    "pack": "npm run build && electron-builder --dir",
+    "dist": "npm run build && electron-builder"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JonoGitty/radio-presets.git"
+  },
+  "author": "JonoGitty",
+  "license": "ISC",
+  "dependencies": {
+    "lamejs": "^1.2.1",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "tone": "^15.1.22",
+    "zustand": "^5.0.12"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^4.7.0",
+    "concurrently": "^9.2.1",
+    "electron": "^41.0.2",
+    "electron-builder": "^26.8.1",
+    "typescript": "^5.9.3",
+    "vite": "^6.4.1",
+    "wait-on": "^9.0.4"
+  },
+  "build": {
+    "appId": "com.jonogitty.radio-presets",
+    "productName": "Radio Presets",
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "output": "release"
+    }
+  }
+}
